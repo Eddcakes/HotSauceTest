@@ -33,6 +33,57 @@
 
       ReactDOM.render(
         <Application />,
+
+        document.getElementById('application')
+      );
+
+      var Hotlist = React.createClass({
+        getInitialState: function() {
+          return {data: []};
+        },
+
+        getJSON: function (callback) {
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', 'hotsauces.json', true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status === 200) { 
+              callback.apply(xhr)
+              var parseList = JSON.parse(xhr.responseText);
+              var sauces = parseList['list'];
+              this.setState({data: sauces});
+            }  
+          }.bind(this)
+          xhr.send();
+        },
+
+        componentDidMount: function(){
+          this.getJSON(
+            function() {
+              return JSON.parse(this.responseText);
+            }
+          );  
+        },  
+
+        render: function() {
+          return (
+            <div>
+              <h1>Hotsauce</h1>
+              {this.state.data.map(function(sauce) {
+                return <div>
+                          <h3>{sauce.title}</h3>
+                          <h5>{sauce.subtitle}</h5>
+                          <h5>{sauce.description}</h5>
+                          <img src={sauce.imageURL} alt="hotsauce pic"/>
+                        </div>
+              })}
+            </div>
+          )
+        }
+      });
+
+      ReactDOM.render(
+        <Hotlist />,
+
         document.getElementById('application')
       );
     </script>
