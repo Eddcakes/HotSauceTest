@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <title>Hot Sauce List</title>
     <link rel="stylesheet" href="css/hotsauce.css" />
-   
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:700' rel='stylesheet' type='text/css'>
   </head>
   <body>
 
@@ -21,69 +22,115 @@
         We do recommend you write all the code here because of cross orgigin scripting issues. If you do want to place this code in a seperate file, it will require you use a server environment and access this page via http://localhost/HostSauceTest/ or something similar.
       */
 
-      var Application = React.createClass({
-        render: function() {
-          return (
-            <p>
-              Hello applicant!
-            </p>
-          );
+      class HotSauceCard extends React.Component {
+        constructor() {
+          super()
+          this.state = ({
+            data: [],
+          })
         }
-      });
 
-      ReactDOM.render(
-        <Application />,
-
-        document.getElementById('application')
-      );
-
-      var Hotlist = React.createClass({
-        getInitialState: function() {
-          return {data: []};
-        },
-
-        getJSON: function (callback) {
+        _getJSON(callback) {
           var xhr = new XMLHttpRequest();
           xhr.open('GET', 'hotsauces.json', true);
           xhr.onreadystatechange = function() {
             if (xhr.readyState == 4 && xhr.status === 200) { 
-              callback.apply(xhr)
+              callback.apply(xhr);
               var parseList = JSON.parse(xhr.responseText);
               var sauces = parseList['list'];
               this.setState({data: sauces});
             }  
           }.bind(this)
           xhr.send();
-        },
+        }
 
-        componentDidMount: function(){
-          this.getJSON(
+        componentDidMount() {
+          this._getJSON(
             function() {
               return JSON.parse(this.responseText);
             }
-          );  
-        },  
+          ) 
+        }
 
-        render: function() {
+        _getSauces() {
+          const sauceItems = this.state.data;
+          return sauceItems.map((sauce, index) => {
+            return (
+              <SauceList title={sauce.title} image={sauce.imageURL} key={sauce.index} subtitle={sauce.subtitle} description={sauce.description}/>
+            );  
+          });
+        }
+
+        render() {
+          const sauces = this._getSauces();
+          return(
+            <div className="sauce-card">
+              <h1 className="ui-sauce-list-header">Hot Sauce List</h1>
+              {sauces}
+              <SauceDetail />
+            </div> 
+          );
+        }
+      };  
+
+      class SauceList extends React.Component {
+        constructor() {
+          super();
+          this.state = {
+            cardClicked: false,
+          };
+          this._handleClick = this._handleClick.bind(this);
+        }
+
+        _handleClick() {
+          this.setState({cardClicked: !this.state.cardClicked});
+        }
+
+        render() {
+        console.log(this.props.subtitle.length);
+          const detail = this.state.cardClicked ? 
+                        <SauceDetail this image={this.props.image} title={this.props.title} description={this.props.description} closeHandler={this._handleClick}/> 
+                        : null;
+          const isShortSubtitle = this.props.subtitle.length  < 60;
+
           return (
-            <div>
-              <h1>Hotsauce</h1>
-              {this.state.data.map(function(sauce) {
-                return <div>
-                          <h3>{sauce.title}</h3>
-                          <h5>{sauce.subtitle}</h5>
-                          <h5>{sauce.description}</h5>
-                          <img src={sauce.imageURL} alt="hotsauce pic"/>
-                        </div>
-              })}
+            <div className="ui-card">
+              <a href="#ui-sauce-detail" onClick={this._handleClick}>
+                <div key={this.props.index}>
+                  <img src={this.props.image}/>
+                  <div className="ui-sauce-list-section">
+                    <p className="ui-sauce-title">{this.props.title}</p>
+                    <p className="ui-sauce-subtitle">{this.props.subtitle}
+                      {isShortSubtitle ? (<span className="ui-card-fix">I'm more text to keep these cards even.</span>) : null}
+                    </p>
+                  </div>
+                </div>
+              </a>
+              {detail}
+            </div>
+          );
+        }
+      };
+
+      class SauceDetail extends React.Component {
+        render() {
+          return (
+            <div id="ui-sauce-detail">
+              <div className="ui-sauce-detail-box">
+                <a className="ui-sauce-detail-link" href="#" onClick={this.props.closeHandler}>
+                  &lsaquo; Back to hot sauce list
+                </a>
+                <p className="ui-detail-title">{this.props.title}</p>
+                <img src={this.props.image} />
+                <p className="ui-sauce-description">{this.props.description}</p>
+              </div>
             </div>
           )
         }
-      });
+      };
 
       ReactDOM.render(
-        <Hotlist />,
-
+        <HotSauceCard>, <SauceList />, <SauceDetail />, </HotSauceCard>,
         document.getElementById('application')
       );
     </script>
